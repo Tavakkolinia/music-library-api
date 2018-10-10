@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const httpMocks = require('node-mocks-http');
 const events = require('events');
-const { put } = require('../../controllers/Artist');
+const { deleteArtist } = require('../../controllers/Artist');
 const Artist = require('../../models/Artist');
 
 require('dotenv').config({
@@ -13,15 +13,14 @@ describe('Artist PUT Endpoint', () => {
   beforeAll((done) => {
     mongoose.connect(process.env.TEST_DATABASE_CONN, done);
   });
-  it('updates artist record', (done) => {
-    // expect.assertions(2);
+  it('deletes artist record', (done) => {
     const artist = new Artist({ name: 'tikitavi', genre: 'tralala' });
     artist.save((err, artistCreated) => {
       if (err) {
         console.log(err, 'something went wrong');
       }
       const request = httpMocks.createRequest({
-        method: 'PUT',
+        method: 'DELETE',
         URL: '/Artist/1234',
         params: {
           artistId: artistCreated._id,
@@ -35,30 +34,25 @@ describe('Artist PUT Endpoint', () => {
       const response = httpMocks.createResponse({
         eventEmitter: events.EventEmitter,
       });
-      put(request, response);
+      deleteArtist(request, response);
       response.on('end', () => {
-        const updatedArtist = JSON.parse(response._getData());
-        expect(updatedArtist).toEqual({
-          __v: 0,
-          _id: artistCreated._id.toString(),
-          name: 'tikitavi',
-          genre: 'nananala',
-
+        Artist.findById(artistCreated._id, (err, noSuchArtist) => {
+          expect(noSuchArtist).toBe(null);
+          done();
         });
-        done();
       });
     });
   });
-});
 
-afterEach((done) => {
-  Artist.collection.drop((e) => {
-    if (e) {
-      console.log(e);
-    }
-    done();
+  afterEach((done) => {
+    Artist.collection.drop((e) => {
+      if (e) {
+        console.log(e);
+      }
+      done();
+    });
   });
-});
-afterAll(() => {
-  mongoose.connection.close();
+  afterAll(() => {
+    mongoose.connection.close();
+  });
 });

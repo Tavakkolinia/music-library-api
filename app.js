@@ -21,4 +21,6 @@ app.post('/Artist', artist.post);
 app.get('/Artist', artistController.list);
 app.get('/Artist/:artistId', artistId.get);
 app.put('/Artist/:artistId', artistController.put);
+app.delete('/Artist/:artistId', artistController.deleteArtist);
+//app.postAlbum('/Artist/:artistId/albums', artistController.postAlbum);
 app.listen(3000, () => console.log('It works!'));
